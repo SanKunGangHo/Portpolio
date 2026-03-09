@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>이강호 — Unity Client Programmer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:  #64d2ff;
+      --accent2: #bf5af2;
+      --accent3: #30d158;
+      --accent4: #ff9f0a;
+      --accent5: #ff453a;
+      --text-primary: rgba(255,255,255,0.92);
+      --text-secondary: rgba(255,255,255,0.52);
+      --glass-bg: rgba(255,255,255,0.065);
+      --glass-border: rgba(255,255,255,0.13);
+      --glass-highlight: rgba(255,255,255,0.18);
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+      background: #070710;
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BG ORBS ── */
+    .bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.3; animation: drift 20s ease-in-out infinite alternate; }
+    .orb-1 { width: 650px; height: 650px; background: radial-gradient(circle, #1a6ef5 0%, #5e2ca5 60%, transparent 100%); top: -180px; left: -120px; animation-duration: 24s; }
+    .orb-2 { width: 520px; height: 520px; background: radial-gradient(circle, #00e5ff 0%, #0a84ff 50%, transparent 100%); top: 25%; right: -130px; animation-duration: 18s; animation-delay: -7s; }
+    .orb-3 { width: 420px; height: 420px; background: radial-gradient(circle, #30d158 0%, #007aff 60%, transparent 100%); bottom: 8%; left: 15%; animation-duration: 27s; animation-delay: -14s; }
+    .orb-4 { width: 380px; height: 380px; background: radial-gradient(circle, #bf5af2 0%, #ff2d55 60%, transparent 100%); bottom: 28%; right: 10%; animation-duration: 21s; animation-delay: -4s; }
+    @keyframes drift {
+      0%   { transform: translate(0,0) scale(1); }
+      33%  { transform: translate(55px,-35px) scale(1.05); }
+      66%  { transform: translate(-25px,45px) scale(0.97); }
+      100% { transform: translate(18px,-18px) scale(1.02); }
+    }
+
+    /* ── LAYOUT ── */
+    .page { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 40px 24px 100px; }
+
+    /* ── GLASS BASE ── */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(26px) saturate(180%);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 36px rgba(0,0,0,0.5), inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .glass::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 30%, rgba(255,255,255,0.65) 50%, rgba(255,255,255,0.45) 70%, transparent 100%);
+    }
+
+    /* ── NAV ── */
+    nav { position: sticky; top: 16px; z-index: 100; margin-bottom: 48px; }
+    .nav-inner {
+      display: flex; justify-content: center; gap: 4px; flex-wrap: wrap;
+      background: rgba(28,28,40,0.62);
+      backdrop-filter: blur(32px) saturate(160%);
+      -webkit-backdrop-filter: blur(32px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50px; padding: 6px;
+      width: fit-content; margin: 0 auto;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .nav-inner a {
+      color: var(--text-secondary); text-decoration: none;
+      font-size: 13px; font-weight: 500; padding: 7px 16px;
+      border-radius: 50px; transition: all 0.2s ease; letter-spacing: 0.01em;
+    }
+    .nav-inner a:hover { color: var(--text-primary); background: rgba(255,255,255,0.1); }
+
+    /* ── HERO ── */
+    .hero { padding: 64px 52px 56px; margin-bottom: 24px; text-align: center; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(100,210,255,0.12); border: 1px solid rgba(100,210,255,0.3);
+      border-radius: 50px; padding: 5px 14px;
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 28px;
+    }
+    .hero-badge::before {
+      content: ''; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+    .hero h1 {
+      font-size: clamp(40px,7vw,72px); font-weight: 700;
+      letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 8px;
+      background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-subtitle { font-size: 17px; color: var(--text-secondary); margin-bottom: 20px; font-weight: 400; }
+    .hero-desc { font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.6); max-width: 600px; margin: 0 auto 36px; }
+    .hero-contacts { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+    .contact-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50px; padding: 9px 18px; font-size: 13px;
+      color: var(--text-secondary); text-decoration: none; transition: all 0.2s ease;
+    }
+    .contact-chip:hover { background: rgba(255,255,255,0.13); color: var(--text-primary); border-color: rgba(255,255,255,0.25); transform: translateY(-1px); }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 24px; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 16px; padding-left: 4px; }
+
+    /* ── GRIDS ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+    @media(max-width:680px) { .grid-2,.grid-3 { grid-template-columns: 1fr; } .hero { padding: 40px 24px; } }
+    @media(max-width:900px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+
+    /* ── INFO CARD ── */
+    .info-card { padding: 28px 30px; }
+    .info-card h3 { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+    .info-row { margin-bottom: 12px; }
+    .info-row:last-child { margin-bottom: 0; }
+    .info-row .lbl { font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 2px; }
+    .info-row .val { font-size: 14px; color: var(--text-primary); line-height: 1.5; }
+
+    /* ── ABOUT CARD ── */
+    .about-card { padding: 32px 36px; margin-bottom: 16px; }
+    .about-card p { font-size: 15px; line-height: 1.85; color: rgba(255,255,255,0.68); }
+    .about-card strong { color: var(--text-primary); font-weight: 600; }
+
+    /* ── SKILLS ── */
+    .skills-card { padding: 28px 30px; margin-bottom: 16px; }
+    .skills-card h3 { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+    .skill-group { margin-bottom: 14px; }
+    .skill-group:last-child { margin-bottom: 0; }
+    .skill-group-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 8px; letter-spacing: 0.06em; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill {
+      padding: 5px 13px; border-radius: 50px; font-size: 12px; font-weight: 500;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.11);
+      color: rgba(255,255,255,0.75); transition: all 0.2s ease;
+    }
+    .pill:hover { background: rgba(255,255,255,0.13); transform: translateY(-1px); }
+    .pill.blue  { background: rgba(100,210,255,0.12); border-color: rgba(100,210,255,0.28); color: var(--accent); }
+    .pill.purple{ background: rgba(191,90,242,0.12);  border-color: rgba(191,90,242,0.28);  color: var(--accent2); }
+    .pill.green { background: rgba(48,209,88,0.12);   border-color: rgba(48,209,88,0.28);   color: var(--accent3); }
+    .pill.orange{ background: rgba(255,159,10,0.12);  border-color: rgba(255,159,10,0.28);  color: var(--accent4); }
+
+    /* ── PROJECT CARD ── */
+    .project-card { padding: 36px 38px; margin-bottom: 16px; }
+    .project-tag {
+      display: inline-block; padding: 4px 12px; border-radius: 50px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .tag-award { background: rgba(255,159,10,0.14); border: 1px solid rgba(255,159,10,0.32); color: var(--accent4); }
+    .tag-personal { background: rgba(100,210,255,0.12); border: 1px solid rgba(100,210,255,0.28); color: var(--accent); }
+    .tag-wip { background: rgba(48,209,88,0.12); border: 1px solid rgba(48,209,88,0.28); color: var(--accent3); }
+    .tag-vr { background: rgba(191,90,242,0.12); border: 1px solid rgba(191,90,242,0.28); color: var(--accent2); }
+
+    .project-title { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .project-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 18px; }
+    .project-desc { font-size: 15px; line-height: 1.78; color: rgba(255,255,255,0.64); margin-bottom: 22px; }
+
+    .spec-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 22px; }
+    .spec-table tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .spec-table tr:last-child { border-bottom: none; }
+    .spec-table td { padding: 10px 14px; font-size: 13px; vertical-align: top; }
+    .spec-table td:first-child { font-weight: 600; color: var(--text-secondary); white-space: nowrap; width: 90px; background: rgba(255,255,255,0.03); }
+    .spec-table td:last-child { color: var(--text-primary); }
+
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 24px 0; }
+
+    .stack-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+    .stack-pill { padding: 4px 11px; border-radius: 50px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.58); }
+
+    /* ── HIGHLIGHT BLOCKS ── */
+    .achievement-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .achievement {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,159,10,0.1); border: 1px solid rgba(255,159,10,0.25);
+      border-radius: 50px; padding: 7px 16px;
+      font-size: 13px; font-weight: 500; color: var(--accent4);
+    }
+
+    /* ── DETAIL GRID ── */
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 12px; margin-bottom: 22px; }
+    .detail-block { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 18px 20px; }
+    .detail-icon { font-size: 20px; margin-bottom: 10px; }
+    .detail-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; }
+    .detail-body { font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
+
+    /* ── ISSUE BLOCK ── */
+    .issue-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+    .issue-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(100,210,255,0.5); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; }
+    .issue-problem { font-size: 13px; font-weight: 600; color: var(--accent5); margin-bottom: 4px; }
+    .issue-solution { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+    .issue-solution span { color: var(--accent3); font-weight: 600; }
+
+    /* ── CODE SNIPPET ── */
+    .code-section { margin-bottom: 22px; }
+    .code-section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px; }
+    .code-snippet { margin-bottom: 16px; }
+    .code-snippet:last-child { margin-bottom: 0; }
+    .code-header {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-bottom: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      padding: 10px 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .code-dots { display: flex; gap: 5px; }
+    .code-dots span { width: 11px; height: 11px; border-radius: 50%; }
+    .code-dots span:nth-child(1) { background: #ff5f57; }
+    .code-dots span:nth-child(2) { background: #febc2e; }
+    .code-dots span:nth-child(3) { background: #28c840; }
+    .code-filename { font-size: 12px; color: var(--text-secondary); font-family: 'SF Mono', 'Fira Code', monospace; }
+    .code-desc { font-size: 12px; color: rgba(255,255,255,0.4); margin-left: auto; }
+    .code-snippet pre {
+      margin: 0; border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.1); border-top: none;
+      max-height: 340px; overflow-y: auto;
+    }
+    .code-snippet pre code { font-size: 12.5px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; line-height: 1.6; }
+
+    /* ── GITHUB LINK ── */
+    .github-link {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 7px 14px; border-radius: 50px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18);
+      font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.75); text-decoration: none; transition: all 0.2s ease;
+    }
+    .github-link:hover { background: rgba(255,255,255,0.14); color: var(--text-primary); transform: translateY(-1px); }
+    .github-link i, .yt-btn i { font-size: 13px; }
+
+    /* ── CAREER CARD ── */
+    .career-card { padding: 32px 36px; margin-bottom: 16px; }
+    .career-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .career-company { font-size: 21px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+    .career-role { font-size: 13px; color: var(--accent); font-weight: 500; margin-top: 3px; }
+    .career-period { font-size: 12px; color: var(--text-secondary); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 4px 12px; white-space: nowrap; }
+    .career-desc { font-size: 14px; line-height: 1.75; color: rgba(255,255,255,0.62); margin-bottom: 18px; }
+
+    .achievement-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+    .achievement-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+    .achievement-item::before { content: '✦'; color: var(--accent3); font-size: 10px; flex-shrink: 0; margin-top: 3px; }
+
+    /* ── TEACHING CARD ── */
+    .teaching-card { padding: 28px 30px; margin-bottom: 16px; }
+    .teaching-card h3 { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent4); margin-bottom: 16px; }
+    .teaching-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+    .teaching-table th { background: rgba(255,255,255,0.05); font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.06em; text-align: left; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .teaching-table td { padding: 10px 14px; font-size: 13px; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+    .teaching-table tr:last-child td { border-bottom: none; }
+
+    /* ── FOOTER ── */
+    .footer-card { padding: 52px 40px; text-align: center; }
+    .footer-card h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; background: linear-gradient(90deg, rgba(255,255,255,1), rgba(255,255,255,0.6)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .footer-card p { font-size: 15px; color: var(--text-secondary); max-width: 480px; margin: 0 auto 32px; line-height: 1.65; }
+    .footer-contacts { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+
+    /* ── FADE IN ── */
+    .fade-in { opacity: 0; transform: translateY(22px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    @media(max-width:520px) { .project-card { padding: 24px 20px; } .career-card { padding: 24px 22px; } }
+
+    /* ── MEDIA ── */
+    .yt-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 50px; font-size: 12px; font-weight: 500;
+      background: rgba(255,59,48,0.12); border: 1px solid rgba(255,59,48,0.28);
+      color: #ff6b6b; cursor: pointer; transition: all 0.2s ease; text-decoration: none;
+    }
+    .yt-btn:hover { background: rgba(255,59,48,0.22); transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#about">소개</a>
+    <a href="#career">경력</a>
+    <a href="#projects">프로젝트</a>
+    <a href="#teaching">강의</a>
+    <a href="#contact">연락처</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- ─── HERO ─── -->
+  <section class="glass hero fade-in">
+    <div class="hero-badge">Unity Client Programmer · 7년</div>
+    <h1><em>이강호</em><br>Lee Gang-Ho</h1>
+    <p class="hero-subtitle">클라이언트 프로그래머 · VR/XR · 네트워크 멀티플레이 · 라이브 서비스</p>
+    <p class="hero-desc">
+      Unity 기반 클라이언트 개발자로, <strong style="color:var(--text-primary)">모바일 라이브 서비스</strong> 운영부터
+      <strong style="color:var(--text-primary)">VR/XR 인터랙션 시스템</strong> 설계까지 다양한 플랫폼 경험을 보유합니다.<br>
+      Pure C# UI 아키텍처, 비동기 처리(UniTask), 네트워크 멀티플레이(Photon Fusion, Mirror) 등 핵심 기술에 강점이 있으며,
+      성능 최적화와 유지보수성 높은 코드 작성을 지향합니다.
+    </p>
+    <div class="hero-contacts">
+      <a class="contact-chip" href="tel:010-9292-2918"><span>📞</span> 010-9292-2918</a>
+      <a class="contact-chip" href="mailto:sankun_ho@icloud.com"><span>✉️</span> sankun_ho@icloud.com</a>
+      <a class="contact-chip" href="https://github.com/SanKunGangHo" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
+      <a class="contact-chip" href="https://sankungangho.notion.site/Portfolio-04ce81e5583543518e418071fb9028a9" target="_blank" rel="noopener"><span>📋</span> Notion 포트폴리오</a>
+    </div>
+  </section>
+
+  <!-- ─── ABOUT ─── -->
+  <section class="section" id="about">
+    <p class="section-label">소개</p>
+
+    <!-- Skills -->
+    <div class="glass skills-card fade-in">
+      <h3 style="color:var(--accent2)">⚡ Skills</h3>
+      <div class="skill-group">
+        <div class="skill-group-label">Engine &amp; Language</div>
+        <div class="pill-row">
+          <span class="pill blue">Unity</span>
+          <span class="pill blue">C# / .NET</span>
+          <span class="pill blue">Unity 6</span>
+          <span class="pill blue">UniTask</span>
+          <span class="pill blue">Addressable Assets</span>
+          <span class="pill blue">UniRx</span>
+          <span class="pill blue">DoTween</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-label">XR &amp; Networking</div>
+        <div class="pill-row">
+          <span class="pill purple">Meta XR SDK (OpenXR)</span>
+          <span class="pill purple">Photon Fusion</span>
+          <span class="pill purple">Mirror</span>
+          <span class="pill purple">MediaPipe</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-label">Backend &amp; Infra</div>
+        <div class="pill-row">
+          <span class="pill green">ASP.NET Core Web API</span>
+          <span class="pill green">PostgreSQL</span>
+          <span class="pill green">Dapper</span>
+          <span class="pill green">Firebase</span>
+          <span class="pill green">Git / GitLab / GitHub</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-label">Tools &amp; Design</div>
+        <div class="pill-row">
+          <span class="pill">JetBrains Rider</span>
+          <span class="pill">Blender3D</span>
+          <span class="pill">Figma</span>
+          <span class="pill">Adobe Substance Painter</span>
+          <span class="pill">Adobe Photoshop / Illustrator</span>
+          <span class="pill">Logic Pro</span>
+          <span class="pill">Final Cut Pro</span>
+          <span class="pill">Pixelmator Pro</span>
+          <span class="pill">Notion</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Education & Certs -->
+    <div class="grid-2">
+      <div class="glass info-card fade-in">
+        <h3>🎓 Education</h3>
+        <div class="info-row">
+          <div class="lbl">연계전공</div>
+          <div class="val">남서울대학교 가상증강현실연계전공<br><span style="color:var(--text-secondary);font-size:12px;">2018 – 2024 졸업</span></div>
+        </div>
+        <div class="info-row">
+          <div class="lbl">대학교</div>
+          <div class="val">남서울대학교 멀티미디어학과<br><span style="color:var(--text-secondary);font-size:12px;">2017 – 2024 졸업</span></div>
+        </div>
+        <div class="info-row">
+          <div class="lbl">고등학교</div>
+          <div class="val">배방고등학교 1기생<br><span style="color:var(--text-secondary);font-size:12px;">2014 – 2017 졸업</span></div>
+        </div>
+      </div>
+      <div class="glass info-card fade-in">
+        <h3>🏅 Certificate</h3>
+        <div class="info-row">
+          <div class="lbl">Unity</div>
+          <div class="val">Unity Certified Associate: Game Developer<br><span style="color:var(--text-secondary);font-size:12px;">2019.11 취득</span></div>
+        </div>
+        <div class="info-row">
+          <div class="lbl">언어</div>
+          <div class="val">日本語能力試験 JLPT N1<br><span style="color:var(--text-secondary);font-size:12px;">2023.01 취득</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CAREER ─── -->
+  <section class="section" id="career">
+    <p class="section-label">경력 (1년 10개월)</p>
+
+    <div class="glass career-card fade-in">
+      <div class="career-header">
+        <div>
+          <div class="career-company">㈜다인리더스</div>
+          <div class="career-role">콘텐츠사업본부 3D개발팀 · 주임</div>
+        </div>
+        <span class="career-period">2024.03 – 2025.12</span>
+      </div>
+
+      <!-- 시리얼플래닛 -->
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:var(--radius-md);padding:22px 24px;margin-bottom:16px;">
+        <img src="https://i.imgur.com/4oitFdu.jpg" alt="시리얼플래닛 타이틀"
+             onerror="this.style.display='none'"
+             style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:16px;display:block;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent2);margin-bottom:4px;">메타버스</div>
+            <div style="font-size:17px;font-weight:700;color:var(--text-primary);">시리얼플래닛</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">한국·베트남 동시 서비스 중인 메타버스 핵심 프로젝트</div>
+          </div>
+          <span class="career-period">2024.03 – 2025.11</span>
+        </div>
+        <p class="career-desc">
+          Unity UI 시스템 전반과 서버 연동을 주도했습니다. Pure C#으로 재사용 가능한 UI 프레임워크를 설계하고,
+          UniTask 기반 비동기 처리로 로딩 없는 화면 전환을 구현했습니다. Addressable Assets 에셋 번들 관리 체계 구축으로 앱 용량을 최적화했으며,
+          서버 API 요청 명세 작성부터 클라이언트 통신 로직 구현까지 담당했습니다.
+        </p>
+        <div class="achievement-list">
+          <div class="achievement-item">Unity 2022 → Unity 6 마이그레이션 완료 및 안정화</div>
+          <div class="achievement-item">Android / iOS 양대 플랫폼 라이브 서비스 운영</div>
+          <div class="achievement-item">베트남 현지 서비스를 위한 다국어 시스템 대응</div>
+        </div>
+        <table class="spec-table">
+          <tr><td>플랫폼</td><td>Android, iOS</td></tr>
+          <tr><td>엔진</td><td>Unity 2022 → Unity 6</td></tr>
+          <tr><td>팀 구성</td><td>10명 (개발자 4인) · 선임 프로그래머</td></tr>
+          <tr><td>기간</td><td>개발 11개월 (6개월차 참가) + 운영 12개월차 (서비스 중)</td></tr>
+          <tr><td>특이사항</td><td>베트남 동시 서비스</td></tr>
+          <tr><td>스택</td><td>C#, Unity 6, UniTask, Addressables, Mirror, PostgreSQL, GitLab</td></tr>
+        </table>
+      </div>
+
+      <!-- 기타 프로젝트 -->
+      <div class="grid-2">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:16px 18px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent2);margin-bottom:6px;">VR / XR</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);">글로벌 의료 R&amp;D 콘텐츠</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">2024.05 – 2024.11</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:16px 18px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent2);margin-bottom:6px;">VR / XR</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);">실습형 VR 콘텐츠 기술 개발</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">2024.09 – 2024.12</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PROJECTS ─── -->
+  <section class="section" id="projects">
+    <p class="section-label">개인 / 팀 프로젝트</p>
+
+    <!-- ── BongWooRi ── -->
+    <div class="glass project-card fade-in">
+      <img src="https://i.imgur.com/K4RxKtU.png" alt="BongWooRi 타이틀"
+           onerror="this.style.display='none'"
+           style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:18px;display:block;">
+      <span class="project-tag tag-award">🏆 V-Stars 2023 VR Contest 초청작</span>
+      <div class="project-title">BongWooRi</div>
+      <div class="project-sub">VR 클라이밍 게임 · 팀 클리프행어즈 (6인) · 팀장 / 프로그래머</div>
+
+      <div class="achievement-row">
+        <span class="achievement">🏆 Devs United Games 주최 V-Stars 2023 VR Game Contest 초청작</span>
+      </div>
+
+      <p class="project-desc">
+        VR 콘테스트 출품을 위해 10일간 개발한 VR 클라이밍 게임입니다.
+        싱글톤 기반 게임 매니저로 타이머·랭킹·세이브포인트를 통합 관리했으며, 짚라인·훅샷 건 등
+        양손 VR 인터랙션 시스템을 설계했습니다.
+      </p>
+
+      <table class="spec-table">
+        <tr><td>플랫폼</td><td>Meta Horizon OS</td></tr>
+        <tr><td>엔진</td><td>Unity 2022</td></tr>
+        <tr><td>팀 구성</td><td>6명 · 팀장 / 프로그래머</td></tr>
+        <tr><td>기간</td><td>10일</td></tr>
+        <tr><td>스택</td><td>C#, Unity 2022, Meta XR SDK, Blender3D</td></tr>
+      </table>
+
+      <div class="divider"></div>
+      <div class="code-section">
+        <div class="code-section-label">코드 스니펫</div>
+
+        <div class="code-snippet">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">GameData.cs</span>
+            <span class="code-desc">싱글톤 패턴 &amp; 타이머 시스템</span>
+          </div>
+          <pre><code class="language-csharp">public class GameData : MonoBehaviour
+{
+    // 싱글톤 — 전역에서 하나의 인스턴스만 보장
+    public static GameData instance;
+
+    public GameObject Savepoint;  // 플레이어 리스폰 위치
+    public float LocalTime;       // 경과 시간
+    public string timeText;       // UI 표시용 문자열
+    public RankSystem rank;
+    public bool isStart;
+    public AudioSource fireSFX;
+
+    private void Awake() => instance = this;
+
+    private void Update()
+    {
+        if (!isStart) return;
+        LocalTime += Time.deltaTime;
+        float sec = LocalTime % 60;
+        int   min = (int)LocalTime / 60;
+        timeText = $"{min:00}:{sec:00}";
+    }
+
+    public void TimeStart() => isStart = true;
+
+    public void TimeStop()
+    {
+        fireSFX.Play();
+        rank.RankUpdate(selectedIcon, LocalTime);
+        rank.RankReset();
+        rank.RankInstantiate();
+        isStart = false;
+    }
+}</code></pre>
+        </div>
+
+        <div class="code-snippet">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">ZipLine.cs</span>
+            <span class="code-desc">VR 양손 짚라인 인터랙션</span>
+          </div>
+          <pre><code class="language-csharp">public class ZipLine : MonoBehaviour
+{
+    public XROrigin xr;
+    public Transform zipPos;
+    public Animator zipAnimator;
+    public AudioSource ziplineSFX;
+
+    private bool isLeftHand, isRightHand, isZip = true;
+
+    private void Update() { if (isZip) ZipMove(); }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("LeftHand"))  isLeftHand  = true;
+        if (other.CompareTag("RightHand")) isRightHand = true;
+        if (other.CompareTag("Zip"))       isZip       = false;
+
+        // 양손 모두 잡았을 때 효과음 재생
+        if (isLeftHand && isRightHand) ziplineSFX.Play();
+    }
+
+    void ZipMove()
+    {
+        if (!isLeftHand || !isRightHand) return;
+        zipAnimator.SetBool("isDown", true);
+        Player.transform.position = zipPos.position; // 손잡이에 플레이어 고정
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+        <a class="yt-btn" href="https://youtu.be/jSMo4SjK_aU" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i> 트레일러</a>
+        <a class="yt-btn" href="https://youtu.be/3hsbcHWvWAE" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i> 플레이 영상</a>
+        <a class="yt-btn" href="https://youtu.be/UfTN0OtrMTA" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i> V-Stars 발표</a>
+        <a class="github-link" href="https://github.com/SanKunGangHo" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
+      </div>
+    </div>
+
+    <!-- ── 불문학 ── -->
+    <div class="glass project-card fade-in">
+      <span class="project-tag tag-personal">📱 팀 프로젝트 (2인)</span>
+      <div class="project-title">불문학</div>
+      <div class="project-sub">모바일 캐주얼 게임 · Android · 기획 / 프로그래머</div>
+
+      <p class="project-desc">
+        "칠링 캠프촌"에서 영감을 받아 기획·개발한 Android 캐주얼 게임입니다.
+        전역 매니저를 UniTask 기반으로 비동기 초기화하고, 플레이타임 기반 칭호 지급 시스템 및
+        Addressables 오디오 캐싱 구조를 직접 설계했습니다.
+      </p>
+
+      <table class="spec-table">
+        <tr><td>플랫폼</td><td>Android</td></tr>
+        <tr><td>엔진</td><td>Unity 6</td></tr>
+        <tr><td>팀 구성</td><td>2명 · 기획 / 프로그래머</td></tr>
+        <tr><td>기간</td><td>2025.09 – 2025.12</td></tr>
+        <tr><td>스택</td><td>C#, Unity 6, UniTask, Addressables, JetBrains Rider, GitHub</td></tr>
+      </table>
+
+      <div class="divider"></div>
+      <div class="code-section">
+        <div class="code-section-label">코드 스니펫</div>
+
+        <div class="code-snippet">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">AppManager.cs</span>
+            <span class="code-desc">전역 매니저 비동기 초기화</span>
+          </div>
+          <pre><code class="language-csharp">public async UniTask&lt;bool&gt; InitTask(bool isForceInit = false)
+{
+    if (!isForceInit && IsInitialize) return true;
+    IsInitialize = true;
+    Screen.sleepTimeout = SleepTimeout.NeverSleep;
+
+    Root = GameObject.Find(_name);
+    if (Root == null) { gameObject.name = _name; Root = gameObject; }
+    else if (Root != gameObject) { Destroy(gameObject); return false; }
+
+    if (Instance == null) Instance = this;
+    DontDestroyOnLoad(Root);
+
+    // UI → Game → SFX 순서로 비동기 초기화
+    await UIManager.InitTask();
+    await GameManager.InitTask();
+    await SFXManager.InitTask();
+
+    Screen.sleepTimeout = SleepTimeout.SystemSetting;
+    PlayBackGroundMusic();
+    return true;
+}</code></pre>
+        </div>
+
+        <div class="code-snippet">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">TitleSystem.cs</span>
+            <span class="code-desc">플레이타임 기반 칭호 지급 (비트 플래그)</span>
+          </div>
+          <pre><code class="language-csharp">[MethodImpl(MethodImplOptions.AggressiveInlining)]
+private void TryAwardTitles()
+{
+    if (_thresholdMinutesSorted.Length == 0) return;
+
+    var totalMinutes = (int)(_save.totalSeconds / 60);
+    var idx = _save.nextTitleIndex;
+
+    while (idx &lt; _thresholdMinutesSorted.Length
+           && totalMinutes >= _thresholdMinutesSorted[idx])
+    {
+        bool newlyAwarded = true;
+        if (idx &lt; 64)
+        {
+            var mask = 1UL &lt;&lt; idx;
+            if ((_save.claimedBits0 & mask) != 0) newlyAwarded = false;
+            else _save.claimedBits0 |= mask;   // 비트 플래그로 중복 방지
+        }
+
+        if (newlyAwarded)
+        {
+            var def = _definitionsSorted[idx];
+            OnTitleAwarded?.Invoke(def);
+            if (!def.Id.Contains("test") || Application.isEditor)
+                ShowTitleToast(def);
+        }
+        idx++;
+    }
+    _save.nextTitleIndex = idx;
+}</code></pre>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+        <a class="yt-btn" href="https://youtube.com/shorts/QadSqbQYy3A" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i> 프로토타입 영상</a>
+        <a class="github-link" href="https://github.com/SanKunGangHo/Fire" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
+      </div>
+    </div>
+
+    <!-- ── 호두과자 ── -->
+    <div class="glass project-card fade-in">
+      <span class="project-tag tag-award">🏆 남서울대 VR 게임 공모전 개발상</span>
+      <div class="project-title">호두과자 게임</div>
+      <div class="project-sub">VR 합성 게임 · Meta Horizon OS · 프로그래머 / 3D 모델링</div>
+
+      <div class="achievement-row">
+        <span class="achievement">🏆 남서울대학교 VR 게임 공모전 개발상 수상</span>
+      </div>
+
+      <p class="project-desc">
+        수박 게임에서 영감을 받아 14일간 개발한 VR 합성 게임입니다. 동일 오브젝트 충돌 시 합성·점수·다음 단계 오브젝트 생성이 이어지는
+        게임 루프를 설계하고, Oculus Integration 기반 양손 그립 상태에 따른 게임오버 판정을 제어했습니다.
+        PlayerPrefs 로컬 랭킹 시스템과 UI 동적 생성까지 1인 구현했습니다.
+      </p>
+
+      <table class="spec-table">
+        <tr><td>플랫폼</td><td>Meta Horizon OS</td></tr>
+        <tr><td>엔진</td><td>Unity 2022</td></tr>
+        <tr><td>팀 구성</td><td>2명 · 프로그래머 / 3D 모델링</td></tr>
+        <tr><td>기간</td><td>14일</td></tr>
+        <tr><td>스택</td><td>C#, Unity 2022, Meta XR SDK, Blender3D</td></tr>
+        <tr><td>레퍼런스</td><td>[Nintendo Switch] 수박게임(スイカゲーム)</td></tr>
+      </table>
+
+      <div class="divider"></div>
+
+      <div style="margin-bottom:18px;">
+        <div class="code-section-label" style="margin-bottom:12px;">주요 이슈 해결</div>
+        <div class="issue-list">
+          <div class="issue-item">
+            <div class="issue-problem">문제 — 동일 오브젝트 중복 합성</div>
+            <div class="issue-solution"><span>해결:</span> hasInteracted 플래그를 양쪽 모두에 적용해 중복 처리 방지 후, 점수 반영·오브젝트 생성·제거를 순차 수행</div>
+          </div>
+          <div class="issue-item">
+            <div class="issue-problem">문제 — VR 그랩 중 게임오버 버그</div>
+            <div class="issue-solution"><span>해결:</span> 그랩 해제 시 1초 딜레이 후 게임오버 콜라이더 활성화 → VR 조작감 개선</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-section">
+        <div class="code-section-label">코드 스니펫</div>
+
+        <div class="code-snippet">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">Specialty.cs</span>
+            <span class="code-desc">충돌 기반 합성 로직</span>
+          </div>
+          <pre><code class="language-csharp">private void OnCollisionEnter(Collision other)
+{
+    // 게임 시작 / 미상호작용 / 수조 내부 / 손에 없음 조건 모두 충족 시
+    if (GameManagement.Instance.isStart && !hasInteracted && isAquarium && !isWall && !isHolding)
+    {
+        var otherSpecialty = other.gameObject.GetComponent&lt;Specialty&gt;();
+        if (otherSpecialty != null && otherSpecialty != this && !otherSpecialty.hasInteracted)
+        {
+            if (specialtyData.SpecialtyName == otherSpecialty.specialtyData.SpecialtyName)
+            {
+                hasInteracted = true;
+                otherSpecialty.hasInteracted = true;
+
+                GameManagement.Instance.PointUp(specialtyData.SpecialtyPoint);
+                GameManagement.Instance.NextSpecialtySpawn(
+                    Vector3.Lerp(transform.position, other.transform.position, 0.5f),
+                    specialtyData.SpecialtyName
+                );
+                Destroy(other.gameObject);
+                Destroy(gameObject);
+            }
+        }
+    }
+    GameManagement.Instance.boop.Play();
+}</code></pre>
+        </div>
+
+        <div class="code-snippet">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">GameManagement.cs</span>
+            <span class="code-desc">VR 그랩 상태 기반 게임오버 판정</span>
+          </div>
+          <pre><code class="language-csharp">private void GrabCheck()
+{
+    if (!isStart) return;
+
+    // 양손 컨트롤러·핸드 중 하나라도 그랩 중이면 게임오버 콜라이더 비활성화
+    if (L_Con.isGrabbed || R_Con.isGrabbed || L_Hand.isGrabbed || R_Hand.isGrabbed)
+    {
+        GameOverColliderCheck_False();
+    }
+    else
+    {
+        // 완전히 손을 놓은 뒤 1초 딜레이로 판정 활성화 (VR 조작감 개선)
+        Invoke(nameof(GameOverColliderCheck_True), 1f);
+    }
+}
+
+public void GameOverColliderCheck_True()  => gameOver_Col.SetActive(true);
+private void GameOverColliderCheck_False() => gameOver_Col.SetActive(false);</code></pre>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+        <a class="yt-btn" href="https://youtu.be/uPbIZUbXbTI" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i> 플레이 영상</a>
+        <a class="github-link" href="https://github.com/SanKunGangHo" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TEACHING ─── -->
+  <section class="section" id="teaching">
+    <p class="section-label">강의 경력</p>
+
+    <div class="glass teaching-card fade-in">
+      <h3>🎤 강의 이력</h3>
+      <table class="teaching-table">
+        <thead>
+          <tr>
+            <th>장소</th>
+            <th>주최</th>
+            <th>교육 내용</th>
+            <th>일정</th>
+            <th>대상</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>부산역</td>
+            <td>교육청</td>
+            <td>유니티 기초 &amp; AI 사용</td>
+            <td>1회 / 1일 / 4시간</td>
+            <td>교사</td>
+          </tr>
+          <tr>
+            <td>서울교육대학교</td>
+            <td>숭실대학교</td>
+            <td>유니티 기초</td>
+            <td>1회 / 6일 / 1시간</td>
+            <td>대학생</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <section class="section" id="contact">
+    <div class="glass footer-card fade-in">
+      <h2>감사합니다</h2>
+      <p>회사와 업무에 애정을 갖고 끊임없이 탐구하고 발전하는 개발자가 되겠습니다.</p>
+      <div class="footer-contacts">
+        <a class="contact-chip" href="tel:010-9292-2918"><span>📞</span> 010-9292-2918</a>
+        <a class="contact-chip" href="mailto:sankun_ho@icloud.com"><span>✉️</span> sankun_ho@icloud.com</a>
+        <a class="contact-chip" href="https://github.com/SanKunGangHo" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> SanKunGangHo</a>
+        <a class="contact-chip" href="https://sankungangho.notion.site/Portfolio-04ce81e5583543518e418071fb9028a9" target="_blank" rel="noopener"><span>📋</span> Notion 포트폴리오</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  hljs.highlightAll();
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.06 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
